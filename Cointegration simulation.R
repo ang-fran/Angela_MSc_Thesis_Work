@@ -102,8 +102,8 @@ summary(j_test)
 
 # ---- If rank is not full ----
 # Now pulling out α and β that decompose to form Π
-α = j_test@W[1:2,1] # alpha is the loading matrix
-β = j_test@V[1:2,1] # beta is eigenvectors matrix, both columns since r = 2
+α = j_test@W[1:2,] # alpha is the loading matrix
+β = j_test@V[1:2,] # beta is eigenvectors matrix, both columns since r = 2
 Π = α %*% t(β)
 Π + diag(2) # diag(2) is just my identity matrix
 # Reverse calculation of resulting alpha and beta from Johansen test
@@ -132,9 +132,66 @@ adf.test(ts(X - Y))
 # Plot looks like X - Y is stationary, my adf.test also 
 # has p-value of less than 0.05 so confirm that X - Y is stationary
 
+
+# Let's try real example - non full rank 
+set.seed(0)
+
+µ_t = cumsum(abs(rnorm(T))) # Random
+
+# Regenerating my X and Y
+X = Y = numeric(T)
+
+e_1 = e_2 = numeric(T)
+
+e_1[1] = rnorm(1, 0, 1)
+e_2[1] = rnorm(1, 0, 1)
+
+X[1] = rnorm(1, 0, 1)
+Y[1] = rnorm(1, 0, 1)
+
+ψ1 = 0.5
+φ1 = 0.3
+
+ψ2 = 0.2
+φ2 = 0.8
+
+# set.seed(0)
+for (t in 2:T) {
+  e_1[t] = rnorm(1, 0, 1)
+  e_2[t] = rnorm(1, 0, 1)
+  
+  # Subtracting µ_t inside X_t-1 & Y_t-1 should take care of µ_t throughout??
+  X[t] = (ψ1 * (X[t-1] - µ_t[t])) + (φ1 * (Y[t-1] - µ_t[t])) + µ_t[t] + e_1[t]
+  Y[t] = (ψ2 * (X[t-1] - µ_t[t])) + (φ2 * (Y[t-1] - µ_t[t])) + µ_t[t] + e_2[t]
+}
+ts.plot(X)
+
+data = cbind(X,Y)
+VARselect(data) # Lags of 1/2
+j_test = ca.jo(data, type = "eigen", ecdet = "trend", K = 2)
+summary(j_test)
+
+# Reject r = 0, fail to reject r <= 1 so rank = 1
+
+# Now pulling out α and β that decompose to form Π
+α = j_test@W[1:2,1] # alpha is the loading matrix
+β = j_test@V[1:2,1] # beta is eigenvectors matrix, both columns since r = 2
+Π = α %*% t(β)
+Π + diag(2) # diag(2) is just my identity matrix
+# Reverse calculation of resulting alpha and beta from Johansen test
+
+# OR
+var_model = VAR(ts(data), p = 1, type = "trend")
+summary(var_model)
+
+plot(ts(X - Y))
+abline(h = 3, col = 'violetred')
+
+
+
 # Try n = 3 (w/o mean term)
 set.seed(0)
-T = 2000
+T = 200
 X = numeric(T)
 Y = numeric(T)
 Z = numeric(T)
@@ -249,6 +306,92 @@ summary(var_model1)
 coin_data1 = cbind(v,w)
 VARselect(coin_data1)
 j_test3 = ca.jo(coin_data1, type = "trace", ecdet = "trend", K = 3)
+summary(j_test3)
+# Full rank
+var_model2 = VAR(coin_data1, p = 1, type = "trend")
+summary(var_model1)
+
+coin_data2 = cbind(u,w)
+j_test3 = ca.jo(coin_data2, type = "trace", ecdet = "const", K = 2)
+summary(j_test3)
+# Full rank
+var_model3 = VAR(coin_data2, p = 1, type = "const")
+summary(var_model3)
+
+
+# non-full rank
+set.seed(0)
+T = 100
+
+X = numeric(T)
+Y = numeric(T)
+Z = numeric(T)
+
+X[1] = rnorm(1)
+Y[1] = rnorm(1)
+Z[1] = rnorm(1)
+
+µ_t = (1:T)/100
+
+e_1 = numeric(T)
+e_2 = numeric(T)
+e_3 = numeric(T)
+
+a1 = 0.4; b1 = -0.3; c1 = 0.7
+a2 = 0.2; b2 = 0.1; c2 = 0.3
+a3 = 0.5; b3 = -0.2; c3 = 0.7
+
+for (t in 2:T) {
+  e_1[t] = rnorm(1)
+  e_2[t] = rnorm(1)
+  e_3[t] = rnorm(1)
+  
+  X[t] = a1 * (X[t-1] - µ_t[t]) + b1 * (Y[t-1] - µ_t[t]) + 
+    c1 * (Z[t-1] - µ_t[t]) + µ_t[t] + e_1[t]
+  Y[t] = a2 * (X[t-1] - µ_t[t]) + b2 * (Y[t-1] - µ_t[t]) + 
+    c2 * (Z[t-1] - µ_t[t]) + µ_t[t] + e_2[t]
+  Z[t] = a3 * (X[t-1] - µ_t[t]) + b3 * (Y[t-1] - µ_t[t]) + 
+    c3 * (Z[t-1] - µ_t[t]) + µ_t[t] + e_3[t]
+}
+ts.plot(Z)
+VAR_data = ts(cbind(X, Y, Z))
+
+VARselect(VAR_data, type = 'trend') # Lag choice of 1's/2's across the board
+
+j_test1 = ca.jo(VAR_data, type = "trace", ecdet = "trend", K = 2)
+summary(j_test1)
+
+# Fail to reject r <= 2, so rank is 2
+α = j_test1@W[,c(1:2)] # alpha is the loading matrix
+β = j_test1@V[1:3,c(1:2)] # beta is eigenvectors matrix, both columns since r = 3
+Π = α %*% t(β)
+Π + diag(3)
+# Close enough lol
+
+var_model = VAR(ts(VAR_data), p = 1, type = "trend")
+summary(var_model)
+# Coefficients are close
+####
+
+u = X - Y
+v = Y - Z
+w = X - Z
+
+plot(ts(u))
+plot(ts(v))
+plot(ts(w))
+
+coin_data = cbind(u,v)
+VARselect(coin_data)
+j_test2 = ca.jo(coin_data, type = "trace", ecdet = "trend", K = 2)
+summary(j_test2)
+# Full rank
+var_model1 = VAR(coin_data, p = 1, type = "trend")
+summary(var_model1)
+
+coin_data1 = cbind(v,w)
+VARselect(coin_data1)
+j_test3 = ca.jo(coin_data1, type = "trace", ecdet = "trend", K = 2)
 summary(j_test3)
 # Full rank
 var_model2 = VAR(coin_data1, p = 1, type = "trend")
