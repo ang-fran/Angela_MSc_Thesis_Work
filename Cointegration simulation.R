@@ -319,7 +319,7 @@ var_model3 = VAR(coin_data2, p = 1, type = "const")
 summary(var_model3)
 
 
-# non-full rank
+# non-full rank, r = 2
 set.seed(0)
 T = 100
 
@@ -403,3 +403,187 @@ summary(j_test3)
 # Full rank
 var_model3 = VAR(coin_data2, p = 1, type = "const")
 summary(var_model3)
+
+# Non-full rank: Different means
+# Rank 0
+set.seed(0)
+T = 200
+
+rank = 0
+
+trend1 = cumsum(rnorm(T, 0.1, 1))
+trend2 = cumsum(rnorm(T, 0.05, 1))
+trend3 = cumsum(rnorm(T, 0.02, 1))
+
+if (rank == 0) {
+  µ_t1 = trend1
+  µ_t2 = trend2
+  µ_t3 = trend3
+} else if (rank == 1) {
+  µ_t1 = trend1
+  µ_t2 = trend1 + rnorm(T, 0, 0.1)
+  µ_t3 = trend2
+} else if (rank == 2) {
+  µ_t1 = trend1
+  µ_t2 = trend2
+  µ_t3 = 0.5 * (trend1 + trend2)
+}
+
+a1 = 0.5; b1 = 0.2; c1 = 0.1
+a2 = 0.1; b2 = 0.4; c2 = 0.2
+a3 = 0.2; b3 = 0.1; c3 = 0.3
+
+X = numeric(T)
+Y = numeric(T)
+Z = numeric(T)
+
+X[1] = µ_t1[1] + rnorm(1)
+Y[1] = µ_t2[1] + rnorm(1)
+Z[1] = µ_t3[1] + rnorm(1)
+
+e_1 = rnorm(T, 0, 1)
+e_2 = rnorm(T, 0, 0.3)
+e_3 = rnorm(T, 0, 0.6)
+
+for (t in 2:T) {
+  X[t] = a1 * (X[t - 1] - µ_t1[t]) + b1 * (Y[t - 1] - µ_t1[t]) +
+    c1 * (Z[t - 1] - µ_t1[t]) + µ_t1[t] + e_1[t]
+  
+  Y[t] = a2 * (X[t - 1] - µ_t2[t]) + b2 * (Y[t - 1] - µ_t2[t]) +
+    c2 * (Z[t - 1] - µ_t2[t]) + µ_t2[t] + e_2[t]
+  
+  Z[t] = a3 * (X[t - 1] - µ_t3[t]) + b3 * (Y[t - 1] - µ_t3[t]) +
+    c3 * (Z[t - 1] - µ_t3[t]) + µ_t3[t] + e_3[t]
+}
+
+VAR_data = ts(cbind(X, Y, Z))
+ts.plot(VAR_data, col = 1:3, rank)
+
+VARselect(VAR_data, lag.max = 10, type = "trend")$selection
+
+j_test = ca.jo(VAR_data, type = "trace", ecdet = "trend", K = 2)
+summary(j_test)
+
+α = j_test@W[,c(1:2)] # alpha is the loading matrix
+β = j_test1@V[1:3,c(1:2)] # beta is eigenvectors matrix, both columns since r = 3
+Π = α %*% t(β)
+Π + diag(3)
+
+# Rank 1
+set.seed(0)
+T = 200
+
+rank = 1
+
+trend1 = cumsum(rnorm(T, 0.1, 1))
+trend2 = cumsum(rnorm(T, 0.05, 1))
+trend3 = cumsum(rnorm(T, 0.02, 1))
+
+if (rank == 0) {
+  µ_t1 = trend1
+  µ_t2 = trend2
+  µ_t3 = trend3
+} else if (rank == 1) {
+  µ_t1 = trend1
+  µ_t2 = trend1 + rnorm(T, 0, 0.1)
+  µ_t3 = trend2
+} else if (rank == 2) {
+  µ_t1 = trend1
+  µ_t2 = trend2
+  µ_t3 = 0.5 * (trend1 + trend2)
+}
+
+a1 = 0.5; b1 = 0.2; c1 = 0.1
+a2 = 0.1; b2 = 0.4; c2 = 0.2
+a3 = 0.2; b3 = 0.1; c3 = 0.3
+
+X = numeric(T)
+Y = numeric(T)
+Z = numeric(T)
+
+X[1] = µ_t1[1] + rnorm(1)
+Y[1] = µ_t2[1] + rnorm(1)
+Z[1] = µ_t3[1] + rnorm(1)
+
+e_1 = rnorm(T, 0, 1)
+e_2 = rnorm(T, 0, 0.3)
+e_3 = rnorm(T, 0, 0.6)
+
+for (t in 2:T) {
+  X[t] = a1 * (X[t - 1] - µ_t1[t]) + b1 * (Y[t - 1] - µ_t1[t]) +
+    c1 * (Z[t - 1] - µ_t1[t]) + µ_t1[t] + e_1[t]
+  
+  Y[t] = a2 * (X[t - 1] - µ_t2[t]) + b2 * (Y[t - 1] - µ_t2[t]) +
+    c2 * (Z[t - 1] - µ_t2[t]) + µ_t2[t] + e_2[t]
+  
+  Z[t] = a3 * (X[t - 1] - µ_t3[t]) + b3 * (Y[t - 1] - µ_t3[t]) +
+    c3 * (Z[t - 1] - µ_t3[t]) + µ_t3[t] + e_3[t]
+}
+
+VAR_data = ts(cbind(X, Y, Z))
+ts.plot(VAR_data, col = 1:3, rank)
+
+VARselect(VAR_data, lag.max = 10, type = "trend")$selection
+
+j_test = ca.jo(VAR_data, type = "trace", ecdet = "trend", K = 2)
+summary(j_test)
+
+
+# Rank 2
+set.seed(0)
+T = 200
+
+rank = 2
+
+trend1 = cumsum(rnorm(T, 0.1, 1))
+trend2 = cumsum(rnorm(T, 0.05, 1))
+trend3 = cumsum(rnorm(T, 0.02, 1))
+
+if (rank == 0) {
+  µ_t1 = trend1
+  µ_t2 = trend2
+  µ_t3 = trend3
+} else if (rank == 1) {
+  µ_t1 = trend1
+  µ_t2 = trend1 + rnorm(T, 0, 0.1)
+  µ_t3 = trend2
+} else if (rank == 2) {
+  µ_t1 = trend1
+  µ_t2 = trend2
+  µ_t3 = 0.5 * (trend1 + trend2)
+}
+
+a1 = 0.5; b1 = 0.2; c1 = 0.1
+a2 = 0.1; b2 = 0.4; c2 = 0.2
+a3 = 0.2; b3 = 0.1; c3 = 0.3
+
+X = numeric(T)
+Y = numeric(T)
+Z = numeric(T)
+
+X[1] = µ_t1[1] + rnorm(1)
+Y[1] = µ_t2[1] + rnorm(1)
+Z[1] = µ_t3[1] + rnorm(1)
+
+e_1 = rnorm(T, 0, 1)
+e_2 = rnorm(T, 0, 0.3)
+e_3 = rnorm(T, 0, 0.6)
+
+for (t in 2:T) {
+  X[t] = a1 * (X[t - 1] - µ_t1[t]) + b1 * (Y[t - 1] - µ_t1[t]) +
+    c1 * (Z[t - 1] - µ_t1[t]) + µ_t1[t] + e_1[t]
+  
+  Y[t] = a2 * (X[t - 1] - µ_t2[t]) + b2 * (Y[t - 1] - µ_t2[t]) +
+    c2 * (Z[t - 1] - µ_t2[t]) + µ_t2[t] + e_2[t]
+  
+  Z[t] = a3 * (X[t - 1] - µ_t3[t]) + b3 * (Y[t - 1] - µ_t3[t]) +
+    c3 * (Z[t - 1] - µ_t3[t]) + µ_t3[t] + e_3[t]
+}
+
+VAR_data = ts(cbind(X, Y, Z))
+ts.plot(VAR_data, col = 1:3, rank)
+
+VARselect(VAR_data, lag.max = 10, type = "const")$selection
+
+j_test = ca.jo(VAR_data, type = "trace", ecdet = "const", K = 2)
+summary(j_test)
