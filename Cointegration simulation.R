@@ -404,83 +404,83 @@ summary(j_test3)
 var_model3 = VAR(coin_data2, p = 1, type = "const")
 summary(var_model3)
 
-# Non-full rank: Different means
-# Rank 0
-set.seed(0)
-T = 100
-
-rank = 2
-
-if (rank == 0) {
-  µ_t1 = cumsum(rnorm(T, 0.1, 1))
-  µ_t2 = cumsum(rnorm(T, 0.05, 1))
-  µ_t3 = cumsum(rnorm(T, 0.02, 1))
-} else if (rank == 1) {
-  µ_t1 = cumsum(rnorm(T, 0.1, 1))
-  µ_t2 = µ_t1 + rnorm(T, 0, 0.1)
-  µ_t3 = cumsum(rnorm(T, 0.05, 1))
-} else if (rank == 2) {
-  µ_t1 = cumsum(rnorm(T, 0.1, 1))
-  µ_t2 = cumsum(rnorm(T, 0.05, 1))
-  µ_t3 = 0.5 * µ_t1 + 0.5 * µ_t2
-}
-
-a1 = 0.5; b1 = 0.2; c1 = 0.1
-a2 = 0.1; b2 = 0.4; c2 = 0.2
-a3 = 0.2; b3 = 0.1; c3 = 0.3
-
-X = numeric(T)
-Y = numeric(T)
-Z = numeric(T)
-
-X[1] = µ_t1[1] + rnorm(1)
-Y[1] = µ_t2[1] + rnorm(1)
-Z[1] = µ_t3[1] + rnorm(1)
-
-e_1 = rnorm(T, 0, 0.3)
-e_2 = rnorm(T, 0, 0.3)
-e_3 = rnorm(T, 0, 0.3)
-
-for (t in 2:T) {
-  X[t] = a1 * (X[t - 1] - µ_t1[t]) + b1 * (Y[t - 1] - µ_t1[t]) +
-    c1 * (Z[t - 1] - µ_t1[t]) + µ_t1[t] + e_1[t]
-  
-  Y[t] = a2 * (X[t - 1] - µ_t2[t]) + b2 * (Y[t - 1] - µ_t2[t]) +
-    c2 * (Z[t - 1] - µ_t2[t]) + µ_t2[t] + e_2[t]
-  
-  Z[t] = a3 * (X[t - 1] - µ_t3[t]) + b3 * (Y[t - 1] - µ_t3[t]) +
-    c3 * (Z[t - 1] - µ_t3[t]) + µ_t3[t] + e_3[t]
-}
-
-VAR_data = ts(cbind(X, Y, Z))
-ts.plot(VAR_data, col = 1:3, rank)
-
-VARselect(VAR_data, lag.max = 10, type = "trend")$selection
-
-j_test = ca.jo(VAR_data, type = "trace", ecdet = "trend", K = 2)
-summary(j_test)
-
-# Fail to reject r = 0
+# # Non-full rank: Different means
+# # Rank 0
+# set.seed(0)
+# T = 100
+# 
+# rank = 2
+# 
+# if (rank == 0) {
+#   µ_t1 = cumsum(rnorm(T, 0.1, 1))
+#   µ_t2 = cumsum(rnorm(T, 0.05, 1))
+#   µ_t3 = cumsum(rnorm(T, 0.02, 1))
+# } else if (rank == 1) {
+#   µ_t1 = cumsum(rnorm(T, 0.1, 1))
+#   µ_t2 = µ_t1 + rnorm(T, 0, 0.1)
+#   µ_t3 = cumsum(rnorm(T, 0.05, 1))
+# } else if (rank == 2) {
+#   µ_t1 = cumsum(rnorm(T, 0.1, 1))
+#   µ_t2 = cumsum(rnorm(T, 0.05, 1))
+#   µ_t3 = 0.5 * µ_t1 + 0.5 * µ_t2
+# }
+# 
+# a1 = 0.5; b1 = 0.2; c1 = 0.1
+# a2 = 0.1; b2 = 0.4; c2 = 0.2
+# a3 = 0.2; b3 = 0.1; c3 = 0.3
+# 
+# X = numeric(T)
+# Y = numeric(T)
+# Z = numeric(T)
+# 
+# X[1] = µ_t1[1] + rnorm(1)
+# Y[1] = µ_t2[1] + rnorm(1)
+# Z[1] = µ_t3[1] + rnorm(1)
+# 
+# e_1 = rnorm(T, 0, 0.3)
+# e_2 = rnorm(T, 0, 0.3)
+# e_3 = rnorm(T, 0, 0.3)
+# 
+# for (t in 2:T) {
+#   X[t] = a1 * (X[t - 1] - µ_t1[t]) + b1 * (Y[t - 1] - µ_t1[t]) +
+#     c1 * (Z[t - 1] - µ_t1[t]) + µ_t1[t] + e_1[t]
+#   
+#   Y[t] = a2 * (X[t - 1] - µ_t2[t]) + b2 * (Y[t - 1] - µ_t2[t]) +
+#     c2 * (Z[t - 1] - µ_t2[t]) + µ_t2[t] + e_2[t]
+#   
+#   Z[t] = a3 * (X[t - 1] - µ_t3[t]) + b3 * (Y[t - 1] - µ_t3[t]) +
+#     c3 * (Z[t - 1] - µ_t3[t]) + µ_t3[t] + e_3[t]
+# }
+# 
+# VAR_data = ts(cbind(X, Y, Z))
+# ts.plot(VAR_data, col = 1:3, rank)
+# 
+# VARselect(VAR_data, lag.max = 10, type = "trend")$selection
+# 
+# j_test = ca.jo(VAR_data, type = "trace", ecdet = "trend", K = 2)
+# summary(j_test)
+# 
+# # Fail to reject r = 0
 
 
 # Rank 1
 set.seed(0)
 T = 200
 
-LC = 0
+LC = 1
 
 if (LC == 0) {
-  µ_t1 = seq(0,1, length.out = 200)
+  µ_t1 = seq(0,1, length.out = T)
   µ_t2 = 0.5*log((1:T))
   µ_t3 = ((1:T)^(1/3))
 } else if (LC == 1) {
-  µ_t1 = 1:T
-  µ_t2 = log((1:T))
-  µ_t3 = 0.3 * (µ_t1) + 2 * (µ_t2)
+  µ_t1 = seq(0,1, length.out = T)
+  µ_t2 = 0.5*log((1:T))
+  µ_t3 = (30 * µ_t1) + (50 * µ_t2)
 } else if (LC == 2) {
-  µ_t1 = 1:T
-  µ_t2 = 2 * µ_t1
-  µ_t3 = 5 * µ_t1
+  µ_t1 = seq(0,1, length.out = T)
+  µ_t2 = 20 * µ_t1
+  µ_t3 = 50 * µ_t1
 }
 
 MU = cbind(µ_t1, µ_t2, µ_t3)
@@ -513,6 +513,7 @@ for (t in 2:T) {
 }
 
 VAR_data = ts(cbind(X, Y, Z))
+head(VAR_data)
 ts.plot(VAR_data, col = 1:3, LC)
 cor(VAR_data)
 
@@ -520,6 +521,15 @@ VARselect(VAR_data, lag.max = 10, type = "none")$selection
 
 j_test = ca.jo(VAR_data, type = "trace", ecdet = "none", K = 2)
 summary(j_test)
+
+# When LC = 0, the individual time series look stationary, and resulting rank was 3
+# When LC = 1, Johansen test rank = 2
+# When LC = 2, 
+
+
+
+
+
 
 # Fail to reject
 α = j_test@W[,-4] # alpha is the loading matrix
