@@ -470,9 +470,9 @@ T = 200
 LC = 0
 
 if (LC == 0) {
-  µ_t1 = 1:T
-  µ_t2 = log((1:T))
-  µ_t3 = sqrt((1:T))
+  µ_t1 = seq(0,1, length.out = 200)
+  µ_t2 = 0.5*log((1:T))
+  µ_t3 = ((1:T)^(1/3))
 } else if (LC == 1) {
   µ_t1 = 1:T
   µ_t2 = log((1:T))
@@ -487,22 +487,21 @@ MU = cbind(µ_t1, µ_t2, µ_t3)
 rankMatrix(MU)
 
 a1 = 0.5; b1 = 0.2; c1 = 0.1
-a2 = 0.1; b2 = 0.4; c2 = 0.2
-a3 = 0.2; b3 = 0.1; c3 = 0.3
+a2 = 0.1; b2 = 0.5; c2 = 0.2
+a3 = 0.1; b3 = 0.1; c3 = 0.5
 
 X = numeric(T)
 Y = numeric(T)
 Z = numeric(T)
 
-X[1] = rnorm(1, 0, 5)
-Y[1] = rnorm(1, 0, 5)
-Z[1] = rnorm(1, 0, 5)
-
-e_1 = rnorm(T, 0, 5)
-e_2 = rnorm(T, 0, 5)
-e_3 = rnorm(T, 0, 5)
+X[1] = 0
+Y[1] = 0
+Z[1] = 0
 
 for (t in 2:T) {
+  e_1[t] = rnorm(1, 0, 5)
+  e_2[t] = rnorm(1, 0, 5)
+  e_3[t] = rnorm(1, 0, 5)
   X[t] = a1 * (X[t - 1] - µ_t1[t]) + b1 * (Y[t - 1] - µ_t1[t]) +
     c1 * (Z[t - 1] - µ_t1[t]) + µ_t1[t] + e_1[t]
   
@@ -517,7 +516,7 @@ VAR_data = ts(cbind(X, Y, Z))
 ts.plot(VAR_data, col = 1:3, LC)
 cor(VAR_data)
 
-VARselect(VAR_data, lag.max = 10, type = "trend")$selection
+VARselect(VAR_data, lag.max = 10, type = "none")$selection
 
 j_test = ca.jo(VAR_data, type = "trace", ecdet = "none", K = 2)
 summary(j_test)
