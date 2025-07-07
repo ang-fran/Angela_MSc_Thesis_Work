@@ -356,7 +356,7 @@ for (t in 2:T) {
 ts.plot(Z)
 VAR_data = ts(cbind(X, Y, Z))
 
-VARselect(VAR_data, type = 'trend') # Lag choice of 1's/2's across the board
+VARselect(VAR_data, type = 'trend') # Lag choice of 1's across the board
 
 j_test1 = ca.jo(VAR_data, type = "trace", ecdet = "trend", K = 2)
 summary(j_test1)
@@ -407,26 +407,22 @@ summary(var_model3)
 # Non-full rank: Different means
 # Rank 0
 set.seed(0)
-T = 200
+T = 100
 
-rank = 0
-
-trend1 = cumsum(rnorm(T, 0.1, 1))
-trend2 = cumsum(rnorm(T, 0.05, 1))
-trend3 = cumsum(rnorm(T, 0.02, 1))
+rank = 2
 
 if (rank == 0) {
-  µ_t1 = trend1
-  µ_t2 = trend2
-  µ_t3 = trend3
+  µ_t1 = cumsum(rnorm(T, 0.1, 1))
+  µ_t2 = cumsum(rnorm(T, 0.05, 1))
+  µ_t3 = cumsum(rnorm(T, 0.02, 1))
 } else if (rank == 1) {
-  µ_t1 = trend1
-  µ_t2 = trend1 + rnorm(T, 0, 0.1)
-  µ_t3 = trend2
+  µ_t1 = cumsum(rnorm(T, 0.1, 1))
+  µ_t2 = µ_t1 + rnorm(T, 0, 0.1)
+  µ_t3 = cumsum(rnorm(T, 0.05, 1))
 } else if (rank == 2) {
-  µ_t1 = trend1
-  µ_t2 = trend2
-  µ_t3 = 0.5 * (trend1 + trend2)
+  µ_t1 = cumsum(rnorm(T, 0.1, 1))
+  µ_t2 = cumsum(rnorm(T, 0.05, 1))
+  µ_t3 = 0.5 * µ_t1 + 0.5 * µ_t2
 }
 
 a1 = 0.5; b1 = 0.2; c1 = 0.1
@@ -441,9 +437,9 @@ X[1] = µ_t1[1] + rnorm(1)
 Y[1] = µ_t2[1] + rnorm(1)
 Z[1] = µ_t3[1] + rnorm(1)
 
-e_1 = rnorm(T, 0, 1)
+e_1 = rnorm(T, 0, 0.3)
 e_2 = rnorm(T, 0, 0.3)
-e_3 = rnorm(T, 0, 0.6)
+e_3 = rnorm(T, 0, 0.3)
 
 for (t in 2:T) {
   X[t] = a1 * (X[t - 1] - µ_t1[t]) + b1 * (Y[t - 1] - µ_t1[t]) +
@@ -464,34 +460,31 @@ VARselect(VAR_data, lag.max = 10, type = "trend")$selection
 j_test = ca.jo(VAR_data, type = "trace", ecdet = "trend", K = 2)
 summary(j_test)
 
-α = j_test@W[,c(1:2)] # alpha is the loading matrix
-β = j_test1@V[1:3,c(1:2)] # beta is eigenvectors matrix, both columns since r = 3
-Π = α %*% t(β)
-Π + diag(3)
+# Fail to reject r = 0
+
 
 # Rank 1
 set.seed(0)
 T = 200
 
-rank = 1
+LC = 0
 
-trend1 = cumsum(rnorm(T, 0.1, 1))
-trend2 = cumsum(rnorm(T, 0.05, 1))
-trend3 = cumsum(rnorm(T, 0.02, 1))
-
-if (rank == 0) {
-  µ_t1 = trend1
-  µ_t2 = trend2
-  µ_t3 = trend3
-} else if (rank == 1) {
-  µ_t1 = trend1
-  µ_t2 = trend1 + rnorm(T, 0, 0.1)
-  µ_t3 = trend2
-} else if (rank == 2) {
-  µ_t1 = trend1
-  µ_t2 = trend2
-  µ_t3 = 0.5 * (trend1 + trend2)
+if (LC == 0) {
+  µ_t1 = 1:T
+  µ_t2 = log((1:T))
+  µ_t3 = sqrt((1:T))
+} else if (LC == 1) {
+  µ_t1 = 1:T
+  µ_t2 = log((1:T))
+  µ_t3 = 0.3 * (µ_t1) + 2 * (µ_t2)
+} else if (LC == 2) {
+  µ_t1 = 1:T
+  µ_t2 = 2 * µ_t1
+  µ_t3 = 5 * µ_t1
 }
+
+MU = cbind(µ_t1, µ_t2, µ_t3)
+rankMatrix(MU)
 
 a1 = 0.5; b1 = 0.2; c1 = 0.1
 a2 = 0.1; b2 = 0.4; c2 = 0.2
@@ -501,13 +494,13 @@ X = numeric(T)
 Y = numeric(T)
 Z = numeric(T)
 
-X[1] = µ_t1[1] + rnorm(1)
-Y[1] = µ_t2[1] + rnorm(1)
-Z[1] = µ_t3[1] + rnorm(1)
+X[1] = rnorm(1, 0, 5)
+Y[1] = rnorm(1, 0, 5)
+Z[1] = rnorm(1, 0, 5)
 
-e_1 = rnorm(T, 0, 1)
-e_2 = rnorm(T, 0, 0.3)
-e_3 = rnorm(T, 0, 0.6)
+e_1 = rnorm(T, 0, 5)
+e_2 = rnorm(T, 0, 5)
+e_3 = rnorm(T, 0, 5)
 
 for (t in 2:T) {
   X[t] = a1 * (X[t - 1] - µ_t1[t]) + b1 * (Y[t - 1] - µ_t1[t]) +
@@ -521,12 +514,19 @@ for (t in 2:T) {
 }
 
 VAR_data = ts(cbind(X, Y, Z))
-ts.plot(VAR_data, col = 1:3, rank)
+ts.plot(VAR_data, col = 1:3, LC)
+cor(VAR_data)
 
 VARselect(VAR_data, lag.max = 10, type = "trend")$selection
 
-j_test = ca.jo(VAR_data, type = "trace", ecdet = "trend", K = 2)
+j_test = ca.jo(VAR_data, type = "trace", ecdet = "none", K = 2)
 summary(j_test)
+
+# Fail to reject
+α = j_test@W[,-4] # alpha is the loading matrix
+β = j_test1@V[-4,-4] # beta is eigenvectors matrix, both columns since r = 3
+Π = α %*% t(β)
+Π + diag(3)
 
 
 # Rank 2
@@ -535,22 +535,22 @@ T = 200
 
 rank = 2
 
-trend1 = cumsum(rnorm(T, 0.1, 1))
-trend2 = cumsum(rnorm(T, 0.05, 1))
-trend3 = cumsum(rnorm(T, 0.02, 1))
+cumsum(rnorm(T, 0.1, 1)) = cumsum(rnorm(T, 0.1, 1))
+cumsum(rnorm(T, 0.05, 1)) = cumsum(rnorm(T, 0.05, 1))
+cumsum(rnorm(T, 0.02, 1)) = cumsum(rnorm(T, 0.02, 1))
 
 if (rank == 0) {
-  µ_t1 = trend1
-  µ_t2 = trend2
-  µ_t3 = trend3
+  µ_t1 = cumsum(rnorm(T, 0.1, 1))
+  µ_t2 = cumsum(rnorm(T, 0.05, 1))
+  µ_t3 = cumsum(rnorm(T, 0.02, 1))
 } else if (rank == 1) {
-  µ_t1 = trend1
-  µ_t2 = trend1 + rnorm(T, 0, 0.1)
-  µ_t3 = trend2
+  µ_t1 = cumsum(rnorm(T, 0.1, 1))
+  µ_t2 = cumsum(rnorm(T, 0.1, 1)) + rnorm(T, 0, 0.1)
+  µ_t3 = cumsum(rnorm(T, 0.05, 1))
 } else if (rank == 2) {
-  µ_t1 = trend1
-  µ_t2 = trend2
-  µ_t3 = 0.5 * (trend1 + trend2)
+  µ_t1 = cumsum(rnorm(T, 0.1, 1))
+  µ_t2 = cumsum(rnorm(T, 0.05, 1))
+  µ_t3 = 0.5 * cumsum(rnorm(T, 0.1, 1)) + 0.5 * cumsum(rnorm(T, 0.05, 1))
 }
 
 a1 = 0.5; b1 = 0.2; c1 = 0.1
@@ -565,9 +565,9 @@ X[1] = µ_t1[1] + rnorm(1)
 Y[1] = µ_t2[1] + rnorm(1)
 Z[1] = µ_t3[1] + rnorm(1)
 
-e_1 = rnorm(T, 0, 1)
+e_1 = rnorm(T, 0, 0.3)
 e_2 = rnorm(T, 0, 0.3)
-e_3 = rnorm(T, 0, 0.6)
+e_3 = rnorm(T, 0, 0.3)
 
 for (t in 2:T) {
   X[t] = a1 * (X[t - 1] - µ_t1[t]) + b1 * (Y[t - 1] - µ_t1[t]) +
@@ -583,7 +583,7 @@ for (t in 2:T) {
 VAR_data = ts(cbind(X, Y, Z))
 ts.plot(VAR_data, col = 1:3, rank)
 
-VARselect(VAR_data, lag.max = 10, type = "const")$selection
+VARselect(VAR_data, lag.max = 10, type = "trend")$selection
 
-j_test = ca.jo(VAR_data, type = "trace", ecdet = "const", K = 2)
+j_test = ca.jo(VAR_data, type = "trace", ecdet = "trend", K = 2)
 summary(j_test)
