@@ -38,6 +38,8 @@ VARselect(VAR_data)$selection
 jotest = ca.jo(VAR_data, type = "trace", ecdet = "none", K = 2)
 summary(jotest)
 # Clearly fail to reject r <= 1
+jotest@W[,1] %*% t(jotest@V[,1])
+
 
 # Rank 2
 α = matrix(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6), nrow = 3, byrow = F)
@@ -63,4 +65,34 @@ jotest = ca.jo(VAR_data, type = "trace", ecdet = "none", K = 2)
 summary(jotest)
 # Clearly fail to reject r <= 2
 jotest@W[,-3] %*% t(jotest@V[,-3])
+# Close enough to Π
+
+# Rank 3: Has to be a VAR where eigenvalues of A are all < 1
+# My A here is essentially Π since this is lag 1
+α = matrix(c(-0.5, -0.5, -0.5, 0.55, 0, -0.5, 0.3, -0.5
+             , 0.3), nrow = 3, byrow = F)
+β = matrix(c(0.5, 0.5, 0.5, -0.55, 0, 0.5, -0.3, 0.5
+             , -0.3), nrow = 3, byrow = F)
+Π = α %*% t(β)
+eigen(Π + diag(3))
+
+e_t = matrix(rnorm(T * n), nrow = T, ncol = n)
+
+# Simulation
+for (t in 2:T) {
+  Var_vector[t, ] = Var_vector[t - 1, ] + (Π %*% Var_vector[t - 1, ]) + e_t[t,]
+}
+
+# Convert to time series
+VAR_data = ts(Var_vector)
+
+ts.plot(VAR_data, col = 1:3, main = "Simulated VECM Series", ylab = "Value")
+legend("topleft", legend = colnames(Var_vector), col = 1:3, lty = 1)
+
+VARselect(VAR_data)$selection
+
+jotest = ca.jo(VAR_data, type = "trace", ecdet = "none", K = 2)
+summary(jotest)
+# Clearly rejecting r <= 2
+jotest@W %*% t(jotest@V)
 # Close enough to Π
