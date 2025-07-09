@@ -465,9 +465,9 @@ summary(var_model3)
 
 # Rank 1
 set.seed(0)
-T = 200
+T = 200000
 
-LC = 1
+LC = 2
 
 if (LC == 0) {
   µ_t1 = seq(0,1, length.out = T)
@@ -479,8 +479,8 @@ if (LC == 0) {
   µ_t3 = (30 * µ_t1) + (50 * µ_t2)
 } else if (LC == 2) {
   µ_t1 = seq(0,1, length.out = T)
-  µ_t2 = 20 * µ_t1
-  µ_t3 = 50 * µ_t1
+  µ_t2 = (2000 * µ_t1)
+  µ_t3 = (500 * µ_t1) + µ_t2
 }
 
 MU = cbind(µ_t1, µ_t2, µ_t3)
@@ -512,6 +512,19 @@ for (t in 2:T) {
     c3 * (Z[t - 1] - µ_t3[t]) + µ_t3[t] + e_3[t]
 }
 
+dX = diff(X, differences = 1)
+adf.test(dX)
+
+dY = diff(Y, differences = 1)
+adf.test(dY)
+
+dZ = diff(Z, differences = 1)
+adf.test(dZ)
+
+dees = cbind(dX, dY, dZ)
+ts.plot(dees, col = 1:3)
+
+
 VAR_data = ts(cbind(X, Y, Z))
 head(VAR_data)
 ts.plot(VAR_data, col = 1:3, LC)
@@ -523,8 +536,9 @@ j_test = ca.jo(VAR_data, type = "trace", ecdet = "none", K = 2)
 summary(j_test)
 
 # When LC = 0, the individual time series look stationary, and resulting rank was 3
-# When LC = 1, Johansen test rank = 2
-# When LC = 2, 
+# When LC = 1, Johansen test rank = 2. 
+
+
 
 
 
