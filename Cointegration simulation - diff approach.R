@@ -130,6 +130,28 @@ colnames(Var_vector) = c("X", "Y", "Z")
 # Initial values
 Var_vector[1, ] = rnorm(3)
 
+# Rank 0
+Π = matrix(rep(0, times = 9), nrow = 3, ncol = 3)
+e_t = matrix(rnorm(T * n), nrow = T, ncol = n)
+mu = as.matrix(rep(2, times = T*n), nrow = T, ncol = n)
+
+# Simulation
+for (t in 2:T) {
+  Var_vector[t, ] = mu[t, ] + Var_vector[t - 1, ] + Π %*% Var_vector[t - 1, ] + e_t[t,]
+}
+
+# Convert to time series
+VAR_data = ts(Var_vector)
+
+ts.plot(VAR_data, col = 1:3, main = "Simulated VECM Series", ylab = "Value")
+legend("topleft", legend = colnames(Var_vector), col = 1:3, lty = 1)
+
+VARselect(VAR_data)$selection
+
+jotest = ca.jo(VAR_data, type = "trace", ecdet = "none", K = 2)
+summary(jotest)
+# Clearly fail to reject r = 0
+
 # rank 1
 α = matrix(c(1, 2, 3), nrow = 3)
 β = matrix(c(1, 0, -1), nrow = 3)
