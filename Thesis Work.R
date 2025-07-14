@@ -193,19 +193,28 @@ summary(VAR_est$varresult$infl_rate_ts)$adj.r.squared # 0.3875
 ###
 
 
-# But is data stationary? ----
-stat_model = lm(del_ts ~ unemploy_ts + gdp_growth_ts + infl_rate_ts)
-res_cont = residuals(stat_model)
-adf.test(res_cont)
-# p-value = 0.342, so we fail to reject H0, that data is nonstationary
+# # But is model stationary? ----
+# stat_model = lm(del_ts ~ unemploy_ts + gdp_growth_ts + infl_rate_ts)
+# res_cont = residuals(stat_model)
+# adf.test(res_cont)
+# # p-value = 0.342, so we fail to reject H0, that data is nonstationary
 
 VARselect(VAR_data)
+
+# Check stationarity
+ts.plot(VAR_data, col = 1:4)
+legend("topleft", legend = colnames(VAR_data), col = 1:4, lty = 1)
+
+d_data = apply(VAR_data, 2, function(x) diff(x, differences = 2))
+ts.plot(d_data, col = 5:8) # Obviously non-stationary due to spike around COVID
+
+
 # K = 2
 j_test = ca.jo(VAR_data, type = "trace", ecdet = "none", K = 2)
 summary(j_test)
-# Failed to reject for r <=1 so this suggests r = 1
-β = j_test@V[,1]
-α = j_test@W[,1]
+# Failed to reject for r <=2 so this suggests r = 2
+β = j_test@V[,c(1:2)]
+α = j_test@W[,c(1:2)]
 Π = α %*% t(β)
 Π
 
