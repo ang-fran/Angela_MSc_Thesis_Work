@@ -4,7 +4,7 @@ library(mvtnorm)
 
 set.seed(0)
 
-T = 200 
+T = 10000 
 M = 2 
 
 P = matrix(c(0.75, 0.25, 0.65, 0.35), 2, 2, byrow = TRUE)
