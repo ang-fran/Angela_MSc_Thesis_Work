@@ -28,6 +28,8 @@ for(t in 1:T){
   mu_t[t,] = mu_list[[s[t]]]
 }
 
+mu_M = mu_t %*% solve(diag(2) - A) 
+
 # MSI
 y1[1,] = y2[1,] = mu_list[[s[1]]] + rmvnorm(1, rep(0,n), Sigma)
 
@@ -39,7 +41,7 @@ y1
 
 # MSM
 for(t in 2:T){
-  y2[t,] = mu_list[[s[t]]] + as.numeric(A %*% (y2[t-1,] - mu_list[[s[t-1]]])) +
+  y2[t,] = mu_M[t,] + as.numeric(A %*% (y2[t-1,] - mu_M[t-1,])) +
     rmvnorm(1, mean = rep(0,2), sigma = Sigma)
 }
 y2
@@ -57,8 +59,8 @@ A_hat
 
 # MSM
 Y = y2[2:T, ]
-X = y2[1:(T-1), ] - mu_t[1:(T-1), ]
-Mu = mu_t[2:T, ]
+X = y2[1:(T-1), ] - mu_M[1:(T-1), ]
+Mu = mu_M[2:T, ]
 Yc = Y - Mu
 
 A_hat_MSM = solve(t(X) %*% X) %*% t(X) %*% Yc
