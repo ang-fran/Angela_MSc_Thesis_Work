@@ -17,8 +17,8 @@ for (t in 2:T) {
 }
 
 ts.plot(y)
-acf(y)
-pacf(y)
+acf(y, main = "")
+pacf(y, main = "")
 
 # AR (1) non-stat
 set.seed(0)
@@ -35,8 +35,8 @@ for (t in 2:T) {
 }
 
 ts.plot(y)
-acf(y)
-pacf(y)
+acf(y, main = "")
+pacf(y, main = "")
 
 
 
@@ -58,8 +58,8 @@ for (t in 3:T) {
 }
 
 ts.plot(y)
-acf(y)
-pacf(y)
+acf(y, main = "")
+pacf(y, main = "")
 
 # Stat AR(2)
 T = 500
@@ -79,6 +79,6 @@ for (t in 3:T) {
 }
 
 ts.plot(y)
-acf(y)
-pacf(y)
+acf(y, main = "")
+pacf(y, main = "")
 
